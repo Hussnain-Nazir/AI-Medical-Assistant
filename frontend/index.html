@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cura - AI Medical Assistant</title>
+  <link rel="icon" type="image/webp" href="./assets/LOGO.webp">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=8" />
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar" id="sidebar">
+
+    <div class="sidebar-brand">
+      <img src="./assets/LOGO.webp" alt="Cura Logo" class="brand-logo" />
+      <div class="brand-text">
+        <span class="brand-name">Cura</span>
+        <span class="brand-sub">AI Medical Assistant</span>
+      </div>
+    </div>
+
+    <div class="sidebar-scroll">
+
+      <!-- Upload -->
+      <section class="side-section">
+        <h3 class="side-heading">Upload</h3>
+        <div class="dropzone" id="dropzone">
+          <p class="dropzone-title">Drag &amp; drop a PDF</p>
+          <p class="dropzone-sub">or</p>
+          <button class="btn btn-secondary btn-sm" id="browseBtn" type="button">Browse files</button>
+          <input type="file" id="fileInput" accept="application/pdf" hidden />
+          <p class="dropzone-hint">PDF only, up to 50 MB</p>
+        </div>
+        <div class="upload-progress" id="uploadProgress" hidden>
+          <div class="upload-progress-row">
+            <span class="upload-filename" id="uploadFilename">document.pdf</span>
+            <span class="upload-status" id="uploadStatus">Uploading</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Documents -->
+      <section class="side-section">
+        <div class="side-heading-row">
+          <h3 class="side-heading">Documents</h3>
+          <span class="side-heading-count" id="docCount">0</span>
+        </div>
+        <div class="doc-list" id="docList">
+          <p class="empty-note">No documents indexed yet.</p>
+        </div>
+      </section>
+
+      <!-- System status -->
+      <section class="side-section">
+        <h3 class="side-heading">System status</h3>
+        <div class="status-grid">
+          <div class="status-row">
+            <span class="status-dot" id="dotGemini"></span>
+            <span class="status-label">Gemini API</span>
+            <span class="status-value" id="valGemini">Checking</span>
+          </div>
+          <div class="status-row">
+            <span class="status-dot" id="dotChroma"></span>
+            <span class="status-label">ChromaDB</span>
+            <span class="status-value" id="valChroma">Checking</span>
+          </div>
+          <div class="status-row">
+            <span class="status-dot" id="dotConversation"></span>
+            <span class="status-label">Conversation store</span>
+            <span class="status-value" id="valConversation">Checking</span>
+          </div>
+          <div class="status-row">
+            <span class="status-dot" id="dotReady"></span>
+            <span class="status-label">Ready state</span>
+            <span class="status-value" id="valReady">Checking</span>
+          </div>
+        </div>
+        <div class="stat-cards">
+          <div class="stat-card">
+            <span class="stat-label">Documents</span>
+            <span class="stat-value" id="statDocs">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Chunks</span>
+            <span class="stat-value" id="statChunks">0</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Actions -->
+      <section class="side-section">
+        <h3 class="side-heading">Actions</h3>
+        <div class="action-row">
+          <button class="btn btn-secondary btn-sm btn-block" id="reindexBtn" type="button">Re-index all documents</button>
+          <button class="btn btn-danger btn-sm btn-block" id="clearDbBtn" type="button">Clear database</button>
+        </div>
+      </section>
+
+      <!-- Settings -->
+      <section class="side-section">
+        <h3 class="side-heading">Settings</h3>
+        <div class="setting-row">
+          <label class="setting-label" for="devModeToggle">Developer mode</label>
+          <label class="switch">
+            <input type="checkbox" id="devModeToggle" />
+            <span class="switch-track"><span class="switch-thumb"></span></span>
+          </label>
+        </div>
+        <div class="setting-row">
+          <label class="setting-label" for="topKInput">Chunks retrieved</label>
+          <input type="number" class="input input-sm" id="topKInput" min="1" max="20" value="5" />
+        </div>
+        <div class="setting-row setting-row-stack">
+          <label class="setting-label" for="apiBaseInput">API base URL</label>
+          <input type="text" class="input input-sm" id="apiBaseInput" value="http://localhost:8000" />
+        </div>
+      </section>
+
+      <!-- Recently uploaded -->
+      <section class="side-section">
+        <h3 class="side-heading">Recently uploaded</h3>
+        <div class="recent-list" id="recentList">
+          <p class="empty-note">Nothing uploaded this session.</p>
+        </div>
+      </section>
+
+    </div>
+  </aside>
+
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main">
+
+    <header class="topbar">
+      <button class="icon-btn menu-toggle" id="menuToggle" type="button" aria-label="Toggle sidebar">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="topbar-titles">
+        <h1 class="topbar-title">Cura</h1>
+        <p class="topbar-subtitle">AI Medical Assistant</p>
+      </div>
+      <button class="btn btn-secondary btn-sm" id="clearChatBtn" type="button">Clear conversation</button>
+    </header>
+
+    <div class="chat-scroll" id="chatScroll">
+      <div class="chat-inner" id="chatInner">
+        <div class="empty-state" id="emptyState">
+          <p class="empty-state-title">Ask a question grounded in your documents</p>
+          <p class="empty-state-sub">Cura answers only from what has been uploaded.<br>Informational use only - not professional medical advice.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="composer">
+      <div class="composer-inner">
+        <textarea
+          class="composer-input"
+          id="composerInput"
+          placeholder="Ask a medical question based on your documents..."
+          rows="1"
+        ></textarea>
+        <button class="btn btn-primary composer-send" id="sendBtn" type="button">Send</button>
+      </div>
+      <p class="composer-hint">Enter to send · Shift + Enter for a new line</p>
+    </div>
+
+  </main>
+</div>
+
+<script src="app.js?v=6"></script>
+</body>
+</html>
